@@ -1,0 +1,174 @@
+service timestamps debug datetime msec
+service timestamps log datetime msec
+!
+hostname R1_PE1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+!
+ip vrf CUST-A
+ rd 65400:100
+ route-target export 65400:100
+ route-target import 65400:100
+ route-target import 65400:300
+!
+ip vrf CUST-B
+ rd 65400:200
+ route-target export 65400:200
+ route-target import 65400:200
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip tcp synwait-time 5
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+ ip ospf 1 area 0
+!
+interface Ethernet0/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface GigabitEthernet0/0
+ ip address 10.0.0.1 255.255.255.252
+ ip ospf 1 area 0
+ media-type gbic
+ speed 1000
+ duplex full
+ negotiation auto
+!
+interface GigabitEthernet1/0
+ ip vrf forwarding CUST-A
+ ip address 75.100.0.1 255.255.255.252
+ ip ospf 2 area 2
+ negotiation auto
+!
+interface GigabitEthernet2/0
+ ip address 10.0.0.10 255.255.255.252
+ ip ospf 1 area 0
+ negotiation auto
+!
+interface GigabitEthernet3/0
+ ip vrf forwarding CUST-B
+ ip address 20.200.100.1 255.255.255.252
+ ip ospf 3 area 3
+ negotiation auto
+!
+interface GigabitEthernet4/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface FastEthernet5/0
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+interface FastEthernet5/1
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+router ospf 2 vrf CUST-A
+ router-id 75.100.0.1
+ redistribute bgp 65400 subnets
+!
+router ospf 3 vrf CUST-B
+ router-id 10.200.100.1
+ redistribute bgp 65400 subnets
+!
+router ospf 1
+ mpls ldp autoconfig
+!
+router bgp 65400
+ bgp log-neighbor-changes
+ neighbor 2.2.2.2 remote-as 65400
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 2.2.2.2 timers 3 9
+ neighbor 6.6.6.6 remote-as 65400
+ neighbor 6.6.6.6 update-source Loopback0
+ neighbor 6.6.6.6 timers 3 9
+ !
+ address-family vpnv4
+  neighbor 2.2.2.2 activate
+  neighbor 2.2.2.2 send-community extended
+  neighbor 6.6.6.6 activate
+  neighbor 6.6.6.6 send-community extended
+ exit-address-family
+ !
+ address-family ipv4 vrf CUST-A
+  redistribute ospf 2
+ exit-address-family
+ !
+ address-family ipv4 vrf CUST-B
+  redistribute ospf 3
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+!
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
