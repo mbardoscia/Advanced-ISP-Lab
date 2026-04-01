@@ -8,7 +8,7 @@ Here below a graphical representation of the lab
 - Red circle is the ISP Network
 - Yellow circle is CUSTOMER C (VRF CUST-C)
 - Blue circle is CUSTOMER A (VRF CUST-A)
-- Green circle is CUSTOMER B (VRF CUST_B)
+- Green circle is CUSTOMER B (VRF CUST-B)
 
 Underlay is managed by MBGP and OSPF protocols, while the overlay is mangaged by MPLS
 
