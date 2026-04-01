@@ -1,0 +1,150 @@
+service timestamps debug datetime msec
+service timestamps log datetime msec
+!
+hostname R6_RR2_MPLS
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip tcp synwait-time 5
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 6.6.6.6 255.255.255.255
+ ip ospf 1 area 0
+!
+interface Ethernet0/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface GigabitEthernet0/0
+ ip address 10.0.0.9 255.255.255.252
+ ip ospf 1 area 0
+ media-type gbic
+ speed 1000
+ duplex full
+ negotiation auto
+!
+interface GigabitEthernet1/0
+ ip address 10.0.0.13 255.255.255.252
+ ip ospf 1 area 0
+ negotiation auto
+!
+interface GigabitEthernet2/0
+ ip address 10.0.0.18 255.255.255.252
+ ip ospf 1 area 0
+ negotiation auto
+!
+interface GigabitEthernet3/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet4/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface FastEthernet5/0
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+interface FastEthernet5/1
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+router ospf 1
+ mpls ldp autoconfig
+!
+router bgp 65400
+ bgp router-id 6.6.6.6
+ bgp cluster-id 1
+ bgp log-neighbor-changes
+ neighbor 1.1.1.1 remote-as 65400
+ neighbor 1.1.1.1 timers 3 9
+ neighbor 3.3.3.3 remote-as 65400
+ neighbor 3.3.3.3 update-source Loopback0
+ neighbor 3.3.3.3 timers 3 9
+ neighbor 9.9.9.9 remote-as 65400
+ neighbor 9.9.9.9 update-source Loopback0
+ neighbor 9.9.9.9 timers 3 9
+ !
+ address-family vpnv4
+  neighbor 1.1.1.1 activate
+  neighbor 1.1.1.1 send-community extended
+  neighbor 1.1.1.1 route-reflector-client
+  neighbor 3.3.3.3 activate
+  neighbor 3.3.3.3 send-community extended
+  neighbor 3.3.3.3 route-reflector-client
+  neighbor 9.9.9.9 activate
+  neighbor 9.9.9.9 send-community extended
+  neighbor 9.9.9.9 route-reflector-client
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
