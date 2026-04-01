@@ -1,0 +1,159 @@
+service timestamps debug datetime msec
+service timestamps log datetime msec
+!
+hostname R9_PE3
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+!
+ip vrf CUST-C
+ rd 65400:300
+ route-target export 65400:300
+ route-target import 65400:300
+ route-target import 65400:100
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip tcp synwait-time 5
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 9.9.9.9 255.255.255.255
+ ip ospf 1 area 0
+!
+interface Ethernet0/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface GigabitEthernet0/0
+ ip address 10.0.0.17 255.255.255.252
+ ip ospf 1 area 0
+ media-type gbic
+ speed 1000
+ duplex full
+ negotiation auto
+!
+interface GigabitEthernet1/0
+ ip vrf forwarding CUST-C
+ ip address 93.150.100.1 255.255.255.252
+ ip ospf 3 area 3
+ negotiation auto
+!
+interface GigabitEthernet2/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet3/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet4/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface FastEthernet5/0
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+interface FastEthernet5/1
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+router ospf 3 vrf CUST-C
+ redistribute bgp 65400 subnets
+!
+router ospf 1
+ mpls ldp autoconfig
+!
+router bgp 65400
+ bgp log-neighbor-changes
+ neighbor 2.2.2.2 remote-as 65400
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 6.6.6.6 remote-as 65400
+ neighbor 6.6.6.6 update-source Loopback0
+ neighbor 6.6.6.6 timers 3 9
+ !
+ address-family vpnv4
+  neighbor 2.2.2.2 activate
+  neighbor 2.2.2.2 send-community extended
+  neighbor 6.6.6.6 activate
+  neighbor 6.6.6.6 send-community extended
+ exit-address-family
+ !
+ address-family ipv4 vrf CUST-C
+  redistribute ospf 3 route-map SHARED_SERVICE
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+!
+ip prefix-list SHARED_SERVICE seq 5 permit 20.20.20.10/32
+!
+route-map SHARED_SERVICE permit 10
+ match ip address prefix-list SHARED_SERVICE
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
